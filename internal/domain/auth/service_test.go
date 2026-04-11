@@ -20,7 +20,7 @@ func newTestService(t *testing.T) *auth.AuthService {
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { db.Close() })
+	t.Cleanup(func() { db.Close() }) // TODO: check err
 
 	ctx := context.Background()
 	migrator := migrate.NewMigrator(db, migrations.Migrations)
@@ -40,7 +40,6 @@ func TestUserCanRegisterWithValidCredentials(t *testing.T) {
 	svc := newTestService(t)
 
 	token, err := svc.RegisterUser(context.Background(), "alice", "password123")
-
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -67,7 +66,6 @@ func TestUserCanLoginAfterRegistering(t *testing.T) {
 
 	_, _ = svc.RegisterUser(ctx, "alice", "password123")
 	token, err := svc.Login(ctx, "alice", "password123")
-
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
