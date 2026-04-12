@@ -7,7 +7,6 @@ import (
 	handlers "github.com/blagoySimandov/takgo/internal/adapters/http"
 	jwtadapter "github.com/blagoySimandov/takgo/internal/adapters/jwt"
 	"github.com/blagoySimandov/takgo/internal/adapters/sqlite"
-	"github.com/blagoySimandov/takgo/internal/adapters/ws"
 	"github.com/blagoySimandov/takgo/internal/domain/auth"
 	"github.com/blagoySimandov/takgo/internal/domain/game"
 	"github.com/blagoySimandov/takgo/internal/domain/matchmaking"
@@ -25,15 +24,15 @@ func main() {
 		}
 	}()
 
-	tokenSvc := jwtadapter.NewService("secret-change-me", 24*time.Hour)
+	tokenSvc := jwtadapter.NewService(jwtadapter.GetSecret(), 24*time.Hour)
 	authSvc := auth.NewAuthService(sqlite.NewUserRepo(database), tokenSvc)
+	var notifier game.Notifier
 
-	wsHandler := ws.NewHandler(tokenSvc)
-	hub := game.NewHub(matchmaking.NewQueue(), game.NewInMemoryGameRepo(), wsHandler)
-	wsHandler.SetHub(hub)
+	hub := game.NewHub(matchmaking.NewQueue(), game.NewInMemoryGameRepo(), notifier)
+	_ = hub
 
 	e := echo.New()
-	handlers.RegisterRoutes(e, authSvc, tokenSvc, wsHandler)
+	handlers.RegisterRoutes(e, authSvc, tokenSvc)
 
 	log.Fatal(e.Start(":8080"))
 }

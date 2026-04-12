@@ -92,9 +92,14 @@ func TestGameDetectsWinByRow(t *testing.T) {
 	// X _ _
 	// O O _
 	// X _ _  → X wins top row
-	moves := []struct{ player uuid.UUID; pos int }{
-		{p1, 0}, {p2, 3},
-		{p1, 1}, {p2, 4},
+	moves := []struct {
+		player uuid.UUID
+		pos    int
+	}{
+		{p1, 0},
+		{p2, 3},
+		{p1, 1},
+		{p2, 4},
 		{p1, 2},
 	}
 	for _, m := range moves {
@@ -114,9 +119,14 @@ func TestGameDetectsWinByColumn(t *testing.T) {
 	// X O _
 	// X O _
 	// X _ _  → X wins left column
-	moves := []struct{ player uuid.UUID; pos int }{
-		{p1, 0}, {p2, 1},
-		{p1, 3}, {p2, 4},
+	moves := []struct {
+		player uuid.UUID
+		pos    int
+	}{
+		{p1, 0},
+		{p2, 1},
+		{p1, 3},
+		{p2, 4},
 		{p1, 6},
 	}
 	for _, m := range moves {
@@ -136,9 +146,14 @@ func TestGameDetectsWinByDiagonal(t *testing.T) {
 	// X O _
 	// _ X O
 	// _ _ X  → X wins main diagonal
-	moves := []struct{ player uuid.UUID; pos int }{
-		{p1, 0}, {p2, 1},
-		{p1, 4}, {p2, 5},
+	moves := []struct {
+		player uuid.UUID
+		pos    int
+	}{
+		{p1, 0},
+		{p2, 1},
+		{p1, 4},
+		{p2, 5},
 		{p1, 8},
 	}
 	for _, m := range moves {
@@ -158,11 +173,18 @@ func TestGameDetectsDrawWhenBoardIsFull(t *testing.T) {
 	// X O X
 	// X O O
 	// O X X  → draw
-	moves := []struct{ player uuid.UUID; pos int }{
-		{p1, 0}, {p2, 1},
-		{p1, 2}, {p2, 4},
-		{p1, 3}, {p2, 5},
-		{p1, 7}, {p2, 6},
+	moves := []struct {
+		player uuid.UUID
+		pos    int
+	}{
+		{p1, 0},
+		{p2, 1},
+		{p1, 2},
+		{p2, 4},
+		{p1, 3},
+		{p2, 5},
+		{p1, 7},
+		{p2, 6},
 		{p1, 8},
 	}
 	for _, m := range moves {
@@ -180,9 +202,14 @@ func TestGameDetectsDrawWhenBoardIsFull(t *testing.T) {
 func TestGameDoesNotContinueAfterWin(t *testing.T) {
 	g, p1, p2 := newTestGame()
 	// p1 wins top row
-	moves := []struct{ player uuid.UUID; pos int }{
-		{p1, 0}, {p2, 3},
-		{p1, 1}, {p2, 4},
+	moves := []struct {
+		player uuid.UUID
+		pos    int
+	}{
+		{p1, 0},
+		{p2, 3},
+		{p1, 1},
+		{p2, 4},
 		{p1, 2},
 	}
 	for _, m := range moves {
