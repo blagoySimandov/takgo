@@ -20,7 +20,11 @@ func newTestService(t *testing.T) *auth.AuthService {
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { db.Close() }) // TODO: check err
+	t.Cleanup(func() {
+		if err := db.Close(); err != nil {
+			t.Errorf("close db: %v", err)
+		}
+	})
 
 	ctx := context.Background()
 	migrator := migrate.NewMigrator(db, migrations.Migrations)

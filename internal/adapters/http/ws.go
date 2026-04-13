@@ -6,7 +6,7 @@ import (
 	wsadapter "github.com/blagoySimandov/takgo/internal/adapters/ws"
 	"github.com/blagoySimandov/takgo/internal/domain/auth"
 	"github.com/blagoySimandov/takgo/internal/domain/game"
-"github.com/google/uuid"
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 )
@@ -32,7 +32,7 @@ func makeWsHandler(hub *game.Hub, notifier *wsadapter.WsNotifier, tokens auth.IT
 		}
 		// After upgrade the HTTP connection is hijacked — never return errors
 		// through Echo from this point or it will try to write on a hijacked conn.
-		defer conn.Close()
+		defer func() { _ = conn.Close() }()
 
 		notifier.Register(playerID, conn)
 		defer notifier.Deregister(playerID)

@@ -39,7 +39,11 @@ func setupPlayerConn(t *testing.T, notifier *wsadapter.WsNotifier, playerID uuid
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { client.Close() })
+	t.Cleanup(func() {
+		if err := client.Close(); err != nil {
+			t.Errorf("close client: %v", err)
+		}
+	})
 
 	<-registered
 	return client
@@ -66,7 +70,9 @@ func newPlayingGame(p1, p2 uuid.UUID) *game.Game {
 
 func readWithTimeout(t *testing.T, conn *websocket.Conn, timeout time.Duration) ([]byte, error) {
 	t.Helper()
-	conn.SetReadDeadline(time.Now().Add(timeout))
+	if err := conn.SetReadDeadline(time.Now().Add(timeout)); err != nil {
+		t.Fatal(err)
+	}
 	_, msg, err := conn.ReadMessage()
 	return msg, err
 }
@@ -99,7 +105,9 @@ func TestDeregisteredPlayerDoesNotReceiveNotification(t *testing.T) {
 	notifier.Deregister(p1)
 
 	g := newPlayingGame(p1, p2)
-	notifier.NotifyMove(context.Background(), g, game.Move{PlayerID: p2, Position: 0})
+	if err := notifier.NotifyMove(context.Background(), g, game.Move{PlayerID: p2, Position: 0}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	if _, err := readWithTimeout(t, client1, 100*time.Millisecond); err == nil {
 		t.Fatal("expected no message for deregistered player")

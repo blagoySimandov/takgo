@@ -125,7 +125,10 @@ func submitAuth(m authModel) tea.Cmd {
 type authErrMsg struct{ err error }
 
 func authRequest(url, username, password string) (string, error) {
-	body, _ := json.Marshal(map[string]string{"username": username, "password": password})
+	body, err := json.Marshal(map[string]string{"username": username, "password": password})
+	if err != nil {
+		return "", err
+	}
 	resp, err := http.Post(url, "application/json", bytes.NewReader(body))
 	if err != nil {
 		return "", err

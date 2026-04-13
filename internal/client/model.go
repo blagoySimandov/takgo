@@ -37,7 +37,17 @@ func NewAppModel() appModel {
 }
 
 func (m appModel) Init() tea.Cmd {
-	return m.auth.Init()
+	return tea.Batch(m.auth.Init(), tryLoadToken())
+}
+
+func tryLoadToken() tea.Cmd {
+	return func() tea.Msg {
+		token, err := loadToken()
+		if err != nil {
+			return nil
+		}
+		return tokenMsg{token}
+	}
 }
 
 func (m appModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -106,7 +116,10 @@ func (m appModel) handleMoveKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	key := msg.String()
 	if len(key) == 1 && key[0] >= '1' && key[0] <= '9' {
 		pos := int(key[0] - '1')
-		_ = m.conn.WriteJSON(wsadapter.MoveMsg{Position: pos})
+		if err := m.conn.WriteJSON(wsadapter.MoveMsg{Position: pos}); err != nil {
+			m.err = err
+			return m, tea.Quit
+		}
 	}
 	return m, nil
 }
