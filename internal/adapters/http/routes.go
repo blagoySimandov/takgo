@@ -1,16 +1,19 @@
 package handlers
 
 import (
+	wsadapter "github.com/blagoySimandov/takgo/internal/adapters/ws"
 	"github.com/blagoySimandov/takgo/internal/domain/auth"
+	"github.com/blagoySimandov/takgo/internal/domain/game"
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humaecho"
 	"github.com/labstack/echo/v4"
 )
 
-func RegisterRoutes(e *echo.Echo, authSvc *auth.AuthService, tokens auth.ITokenService) {
+func RegisterRoutes(e *echo.Echo, authSvc *auth.AuthService, tokens auth.ITokenService, hub *game.Hub, notifier *wsadapter.WsNotifier) {
 	api := humaecho.NewWithGroup(e, e.Group("/api/v1"), apiConfig())
 	api.UseMiddleware(makeJWTMiddleware(api, tokens))
 	registerAuth(api, authSvc)
+	registerWs(e, hub, notifier, tokens)
 }
 
 func apiConfig() huma.Config {

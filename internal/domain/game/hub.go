@@ -14,6 +14,8 @@ type IQueue interface {
 	Leave(playerID uuid.UUID) bool
 }
 
+// Hub is the lifecycle of game creation and management.
+// It uses a queue to find a game to join and a repository to store games.
 type Hub struct {
 	queue   IQueue
 	gameSvc *GameService
@@ -38,11 +40,15 @@ func (h *Hub) Connect(playerID uuid.UUID) <-chan *Game {
 
 	g := h.queue.Join(playerID)
 	if g == nil {
+		// if no game is found we need to wait for another player to join
 		return ch
 	}
 	h.pending.Delete(playerID)
-	h.repo.Create(context.Background(), g)
-	h.notifyOpponent(g, playerID)
+	err := h.repo.Save(context.Background(), g) // TODO: context background...
+	if err != nil {
+		return ch
+	}
+	h.deliverMatchToWaitingPlayer(g, playerID)
 	ch <- g
 	return ch
 }
@@ -59,7 +65,10 @@ func (h *Hub) MakeMove(ctx context.Context, gameID, playerID uuid.UUID, position
 	return h.gameSvc.MakeMove(ctx, gameID, playerID, position)
 }
 
-func (h *Hub) notifyOpponent(g *Game, self uuid.UUID) {
+// deliverMatchToWaitingPlayer sends the matched game to the opponent's pending
+// channel, unblocking their Connect call. self is excluded so we only signal
+// the other player.
+func (h *Hub) deliverMatchToWaitingPlayer(g *Game, self uuid.UUID) {
 	for _, p := range g.Players {
 		if p.ID != self {
 			if v, ok := h.pending.Load(p.ID); ok {

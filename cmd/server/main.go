@@ -7,6 +7,7 @@ import (
 	handlers "github.com/blagoySimandov/takgo/internal/adapters/http"
 	jwtadapter "github.com/blagoySimandov/takgo/internal/adapters/jwt"
 	"github.com/blagoySimandov/takgo/internal/adapters/sqlite"
+	wsadapter "github.com/blagoySimandov/takgo/internal/adapters/ws"
 	"github.com/blagoySimandov/takgo/internal/domain/auth"
 	"github.com/blagoySimandov/takgo/internal/domain/game"
 	"github.com/blagoySimandov/takgo/internal/domain/matchmaking"
@@ -26,13 +27,11 @@ func main() {
 
 	tokenSvc := jwtadapter.NewService(jwtadapter.GetSecret(), 24*time.Hour)
 	authSvc := auth.NewAuthService(sqlite.NewUserRepo(database), tokenSvc)
-	var notifier game.Notifier
-
+	notifier := wsadapter.NewWsNotifier()
 	hub := game.NewHub(matchmaking.NewQueue(), game.NewInMemoryGameRepo(), notifier)
-	_ = hub
 
 	e := echo.New()
-	handlers.RegisterRoutes(e, authSvc, tokenSvc)
+	handlers.RegisterRoutes(e, authSvc, tokenSvc, hub, notifier)
 
 	log.Fatal(e.Start(":8080"))
 }
