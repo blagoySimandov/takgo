@@ -1,11 +1,24 @@
-.PHONY: test help
+.PHONY: test build run migrate asyncapi docs help
 
-test: ##@ Run tests
+test: ## Run all tests
 	@go test -v -json ./... | gotestdox
 
+build: ## Build the server binary
+	@go build -o bin/server ./cmd/server
 
+run: ## Run the server
+	@go run ./cmd/server
 
-help: ##@ Display this help message
+migrate: ## Run database migrations
+	@go run ./cmd/migrate
+
+asyncapi-generate: ## Generate asyncapi.yaml from Go types
+	@go run ./cmd/asyncapi
+
+async-docs: asyncapi ## Preview docs (uses asyncapi CLI if installed, else opens yaml)
+	@asyncapi start preview asyncapi.yaml
+
+help: ## Display this help message
 	@echo ""
 	@echo "Usage: make <target>"
 	@echo ""

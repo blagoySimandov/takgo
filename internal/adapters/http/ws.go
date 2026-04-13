@@ -16,10 +16,6 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
 
-type moveMsg struct {
-	Position int `json:"position"`
-}
-
 // NOTE: bypassing huma since huma doesn't support websockets yet will generate the docs with AsyncAPI
 func registerWs(e *echo.Echo, hub *game.Hub, notifier *wsadapter.WsNotifier, tokens auth.ITokenService) {
 	e.GET("/api/v1/game/connect", makeWsHandler(hub, notifier, tokens))
@@ -65,7 +61,7 @@ func authenticateWs(c echo.Context, tokens auth.ITokenService) (uuid.UUID, error
 
 func runMoveLoop(c echo.Context, conn *websocket.Conn, hub *game.Hub, g *game.Game, playerID uuid.UUID) error {
 	for {
-		var msg moveMsg
+		var msg wsadapter.MoveMsg
 		if err := conn.ReadJSON(&msg); err != nil {
 			return nil
 		}

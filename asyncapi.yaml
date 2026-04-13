@@ -1,0 +1,71 @@
+asyncapi: 2.4.0
+info:
+  title: TakGo WebSocket API
+  version: 1.0.0
+  description: Real-time tic-tac-toe over WebSocket. Connect to be matched, then exchange
+    moves.
+servers:
+  production:
+    url: localhost:8080
+    protocol: ws
+channels:
+  /api/v1/game/connect:
+    publish:
+      message:
+        $ref: '#/components/messages/WsMoveMsg'
+    subscribe:
+      message:
+        $ref: '#/components/messages/WsGameStateMsg'
+components:
+  schemas:
+    GameBoard:
+      items:
+        type: integer
+      type:
+      - array
+      - "null"
+    UuidUUID:
+      examples:
+      - 248df4b7-aa70-47b8-a036-33ac447e668d
+      format: uuid
+      type:
+      - "null"
+      - string
+    WsGameStateMsg:
+      properties:
+        board:
+          $ref: '#/components/schemas/GameBoard'
+          description: 'Board cells: 0=empty 1=X 2=O'
+        currentTurn:
+          $ref: '#/components/schemas/UuidUUID'
+          description: UUID of the player whose turn it is
+        lastMove:
+          $ref: '#/components/schemas/WsMoveMsg'
+        state:
+          description: 'Game state: 0=waiting 1=playing 2=finished'
+          type: integer
+        winnerId:
+          $ref: '#/components/schemas/UuidUUID'
+          description: UUID of the winner, null on draw or unfinished
+      type: object
+    WsMoveMsg:
+      properties:
+        position:
+          description: Board position (0-8, row-major)
+          maximum: 8
+          minimum: 0
+          type: integer
+      type: object
+  messages:
+    WsGameStateMsg:
+      payload:
+        $ref: '#/components/schemas/WsGameStateMsg'
+      summary: Game state update
+      description: Server pushes updated board state after every move. On game over
+        a WS close frame follows.
+    WsMoveMsg:
+      payload:
+        $ref: '#/components/schemas/WsMoveMsg'
+      summary: Make a move
+      description: Client sends a move. Rejected if out of turn, cell occupied, or
+        game finished.

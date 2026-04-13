@@ -30,21 +30,25 @@ func (n *WsNotifier) Deregister(playerID uuid.UUID) {
 	delete(n.conns, playerID)
 }
 
-type gameStateMsg struct {
-	Board       game.Board     `json:"board"`
-	State       game.GameState `json:"state"`
-	CurrentTurn uuid.UUID      `json:"currentTurn"`
-	WinnerID    *uuid.UUID     `json:"winnerId,omitempty"`
-	LastMove    game.Move      `json:"lastMove"`
+type MoveMsg struct {
+	Position int `json:"position" minimum:"0" maximum:"8" description:"Board position (0-8, row-major)"`
+}
+
+type GameStateMsg struct {
+	Board       game.Board     `json:"board" description:"Board cells: 0=empty 1=X 2=O"`
+	State       game.GameState `json:"state" description:"Game state: 0=waiting 1=playing 2=finished"`
+	CurrentTurn uuid.UUID      `json:"currentTurn" description:"UUID of the player whose turn it is"`
+	WinnerID    *uuid.UUID     `json:"winnerId,omitempty" description:"UUID of the winner, null on draw or unfinished"`
+	LastMove    MoveMsg        `json:"lastMove"`
 }
 
 func (n *WsNotifier) NotifyMove(ctx context.Context, g *game.Game, move game.Move) error {
-	msg := gameStateMsg{
+	msg := GameStateMsg{
 		Board:       g.Board,
 		State:       g.State,
 		CurrentTurn: g.CurrentTurn,
 		WinnerID:    g.WinnerID,
-		LastMove:    move,
+		LastMove:    MoveMsg{Position: move.Position},
 	}
 	for _, p := range g.Players {
 		n.mu.RLock()
