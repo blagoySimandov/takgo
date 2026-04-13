@@ -1,4 +1,4 @@
-.PHONY: test build run migrate asyncapi docs help
+.PHONY: test build run migrate asyncapi docs help docker-build docker-run
 
 test: ## Run all tests
 	@go test -v -json ./... | gotestdox
@@ -21,6 +21,12 @@ asyncapi-generate: ## Generate asyncapi.yaml from Go types
 
 async-docs: asyncapi ## Preview docs (uses asyncapi CLI if installed, else opens yaml)
 	@asyncapi start preview asyncapi.yaml
+
+docker-build: ## Build the Docker image
+	@docker build -t takgo .
+
+docker-run: ## Run the server in Docker (persists DB in takgo-data volume)
+	@docker run -p 8080:8080 -v takgo-data:/data takgo
 
 help: ## Display this help message
 	@echo ""
