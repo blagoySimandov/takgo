@@ -1,32 +1,32 @@
 # Architecture
 
-TakGo uses **hexagonal architecture** (ports & adapters). Business logic lives in `internal/domain/` and is completely isolated from infrastructure. Adapters wire infrastructure to domain ports — the domain never imports an adapter.
+TakGo uses **hexagonal architecture** (ports & adapters). Business logic lives in `internal/domain/` and is completely isolated from infrastructure. Adapters wire infrastructure to domain ports - the domain never imports an adapter.
 
 ## Layer map
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                    cmd/                             │
-│   server · client · migrate · asyncapi             │
-│            (composition roots)                      │
-└────────────────────┬────────────────────────────────┘
-                     │ wires
-┌────────────────────▼────────────────────────────────┐
-│              internal/adapters/                     │
-│                                                     │
-│  http/      Echo + Huma handlers, JWT middleware    │
-│  ws/        WsNotifier  → game.Notifier port        │
-│  sqlite/    UserRepo    → auth.IUserRepository port │
-│  jwt/       TokenSvc    → auth.ITokenService port   │
-└────────────────────┬────────────────────────────────┘
-                     │ implements
-┌────────────────────▼────────────────────────────────┐
-│              internal/domain/                       │
-│                                                     │
-│  auth/        AuthService, User model, ports        │
-│  game/        GameService, Hub, Game model, ports   │
-│  matchmaking/ Queue (in-memory matchmaker)          │
-└─────────────────────────────────────────────────────┘
++-----------------------------------------------------+
+|                    cmd/                             |
+|   server / client / migrate / asyncapi             |
+|            (composition roots)                      |
++--------------------+--------------------------------+
+                     | wires
++--------------------V--------------------------------+
+|              internal/adapters/                     |
+|                                                     |
+|  http/      Echo + Huma handlers, JWT middleware    |
+|  ws/        WsNotifier  -> game.Notifier port        |
+|  sqlite/    UserRepo    -> auth.IUserRepository port |
+|  jwt/       TokenSvc    -> auth.ITokenService port   |
++--------------------+--------------------------------+
+                     | implements
++--------------------V--------------------------------+
+|              internal/domain/                       |
+|                                                     |
+|  auth/        AuthService, User model, ports        |
+|  game/        GameService, Hub, Game model, ports   |
+|  matchmaking/ Queue (in-memory matchmaker)          |
++-----------------------------------------------------+
 ```
 
 ## Domains
@@ -51,7 +51,7 @@ Handles registration and login. Pure bcrypt + UUID logic. No HTTP, no DB.
 
 ### `game`
 
-Owns tic-tac-toe rules: move validation, win/draw detection, turn rotation. State is persisted via `GameRepository`. After every move the domain calls `Notifier` — it does not know or care that the transport is WebSocket.
+Owns tic-tac-toe rules: move validation, win/draw detection, turn rotation. State is persisted via `GameRepository`. After every move the domain calls `Notifier` - it does not know or care that the transport is WebSocket.
 
 **Ports defined by the domain:**
 
@@ -64,7 +64,7 @@ Owns tic-tac-toe rules: move validation, win/draw detection, turn rotation. Stat
 
 | Port | Adapter |
 |------|---------|
-| `GameRepository` | `adapters/sqlite` (TODO — currently Hub holds state) |
+| `GameRepository` | `adapters/sqlite` (TODO - currently Hub holds state) |
 | `Notifier` | `adapters/ws.WsNotifier` |
 
 ### `matchmaking`
