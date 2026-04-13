@@ -118,6 +118,12 @@ Full details: [docs/architecture.md](docs/architecture.md)
 
 ---
 
+## Commits
+
+Commits follow [Conventional Commits](https://www.conventionalcommits.org) (`feat:`, `fix:`, `chore:`, etc.).
+
+---
+
 ## Development
 
 ```bash
