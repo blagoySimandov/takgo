@@ -2,7 +2,6 @@ package jwt
 
 import (
 	"errors"
-	"log"
 	"os"
 	"time"
 
@@ -46,7 +45,7 @@ func (s *TokenService) keyFunc(t *jwt.Token) (interface{}, error) {
 func GetSecret() string {
 	secret := os.Getenv("JWT_SECRET") // TODO: Move to cfg a centralized config package
 	if secret == "" {
-		log.Fatal("JWT_SECRET not set")
+		secret = "secret" // TODO: Change this to something more secure
 	}
 	return secret
 }

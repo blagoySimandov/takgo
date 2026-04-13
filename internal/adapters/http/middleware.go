@@ -22,11 +22,21 @@ func makeJWTMiddleware(api huma.API, tokens auth.ITokenService) func(huma.Contex
 		userID, err := validateBearer(ctx.Header("Authorization"), tokens)
 		if err != nil {
 			if err := huma.WriteErr(api, ctx, http.StatusUnauthorized, "unauthorized"); err != nil {
-				log.Printf("error writing unauthorized response: %v", err) // TODO: contextual "wide event" loggin - stripe like...
+				log.Printf("error writing unauthorized response: %v", err)
 			}
 			return
 		}
+		Enrich(ctx.Context(), "user_id", userID)
 		next(huma.WithValue(ctx, UserIDKey, userID))
+	}
+}
+
+func makeValidationMiddleware() func(huma.Context, func(huma.Context)) {
+	return func(ctx huma.Context, next func(huma.Context)) {
+		next(ctx)
+		if status := ctx.Status(); status == 422 {
+			Enrich(ctx.Context(), "validation_status", 422)
+		}
 	}
 }
 

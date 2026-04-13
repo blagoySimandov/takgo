@@ -3,14 +3,18 @@
 test: ## Run all tests
 	@go test -v -json ./... | gotestdox
 
-build: ## Build the server binary
+build: ## Build server and client binaries
 	@go build -o bin/server ./cmd/server
+	@go build -o bin/takgo ./cmd/client
 
 run: ## Run the server
 	@go run ./cmd/server
 
-migrate: ## Run database migrations
-	@go run ./cmd/migrate
+migrate-up: ## Run database migrations
+	@go run ./cmd/migrate up
+
+migrate-down: ## Run database migrations
+	@go run ./cmd/migrate down
 
 asyncapi-generate: ## Generate asyncapi.yaml from Go types
 	@go run ./cmd/asyncapi

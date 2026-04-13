@@ -10,8 +10,9 @@ import (
 )
 
 func RegisterRoutes(e *echo.Echo, authSvc *auth.AuthService, tokens auth.ITokenService, hub *game.Hub, notifier *wsadapter.WsNotifier) {
+	e.Use(wideEventMiddleware())
 	api := humaecho.NewWithGroup(e, e.Group("/api/v1"), apiConfig())
-	api.UseMiddleware(makeJWTMiddleware(api, tokens))
+	api.UseMiddleware(makeJWTMiddleware(api, tokens), makeValidationMiddleware())
 	registerAuth(api, authSvc)
 	registerWs(e, hub, notifier, tokens)
 }

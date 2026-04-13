@@ -6,8 +6,7 @@ import (
 	wsadapter "github.com/blagoySimandov/takgo/internal/adapters/ws"
 	"github.com/blagoySimandov/takgo/internal/domain/auth"
 	"github.com/blagoySimandov/takgo/internal/domain/game"
-	"github.com/blagoySimandov/takgo/internal/utils"
-	"github.com/google/uuid"
+"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 )
@@ -31,7 +30,9 @@ func makeWsHandler(hub *game.Hub, notifier *wsadapter.WsNotifier, tokens auth.IT
 		if err != nil {
 			return err
 		}
-		utils.DeferErrJoin(conn.Close, &err)
+		// After upgrade the HTTP connection is hijacked — never return errors
+		// through Echo from this point or it will try to write on a hijacked conn.
+		defer conn.Close()
 
 		notifier.Register(playerID, conn)
 		defer notifier.Deregister(playerID)
@@ -43,11 +44,16 @@ func makeWsHandler(hub *game.Hub, notifier *wsadapter.WsNotifier, tokens auth.IT
 		if !ok || g == nil {
 			return nil
 		}
-		err = conn.WriteJSON(g)
-		if err != nil {
-			return err
+		if err = conn.WriteJSON(wsadapter.GameStateMsg{
+			Board:       g.Board,
+			State:       g.State,
+			CurrentTurn: g.CurrentTurn,
+			WinnerID:    g.WinnerID,
+		}); err != nil {
+			return nil
 		}
-		return runMoveLoop(c, conn, hub, g, playerID)
+		runMoveLoop(c, conn, hub, g, playerID)
+		return nil
 	}
 }
 
@@ -66,7 +72,7 @@ func runMoveLoop(c echo.Context, conn *websocket.Conn, hub *game.Hub, g *game.Ga
 			return nil
 		}
 		if err := hub.MakeMove(c.Request().Context(), g.ID, playerID, msg.Position); err != nil {
-			return err
+			Enrich(c.Request().Context(), "move_error", err.Error())
 		}
 	}
 }

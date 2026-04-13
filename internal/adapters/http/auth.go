@@ -30,7 +30,12 @@ func registerAuth(api huma.API, svc *auth.AuthService) {
 		Summary:     "Register a new user",
 		Tags:        []string{"auth"},
 	}, func(ctx context.Context, input *credentialsInput) (*tokenOutput, error) {
-		return tokenResponse(svc.RegisterUser(ctx, input.Body.Username, input.Body.Password))
+		Enrich(ctx, "username", input.Body.Username)
+		out, err := tokenResponse(svc.RegisterUser(ctx, input.Body.Username, input.Body.Password))
+		if err != nil {
+			Enrich(ctx, "auth_error", err.Error())
+		}
+		return out, err
 	})
 
 	huma.Register(api, huma.Operation{
@@ -40,7 +45,12 @@ func registerAuth(api huma.API, svc *auth.AuthService) {
 		Summary:     "Login",
 		Tags:        []string{"auth"},
 	}, func(ctx context.Context, input *credentialsInput) (*tokenOutput, error) {
-		return tokenResponse(svc.Login(ctx, input.Body.Username, input.Body.Password))
+		Enrich(ctx, "username", input.Body.Username)
+		out, err := tokenResponse(svc.Login(ctx, input.Body.Username, input.Body.Password))
+		if err != nil {
+			Enrich(ctx, "auth_error", err.Error())
+		}
+		return out, err
 	})
 }
 
